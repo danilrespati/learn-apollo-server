@@ -1,5 +1,12 @@
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import express from "express";
+import { createServer } from "http";
+import cors from "cors";
+import bp from "body-parser";
+
+const { json } = bp;
 
 const typeDefs = `#graphql
   type Book {
@@ -29,11 +36,18 @@ const resolvers = {
   },
 };
 
+const app = express();
+const httpServer = createServer(app);
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 });
+await server.start();
+app.use("/graphql", cors(), json(), expressMiddleware(server));
 
-const { url } = await startStandaloneServer(server, { listen: { port: 4000 } });
+await new Promise<void>((resolve) =>
+  httpServer.listen({ port: 4000 }, resolve)
+);
 
-console.log(`🚀 Server ready at: ${url}`);
+console.log(`🚀 Server ready at: http://localhost:4000/graphql`);
