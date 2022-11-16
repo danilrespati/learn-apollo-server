@@ -7,8 +7,8 @@ import express from "express";
 import cors from "cors";
 import { json } from "body-parser";
 import { buildSchema } from "type-graphql";
-import { BookResolver } from "./schema/Book/resolvers";
-import { UserResolver } from "./schema/User/resolver";
+import { BookResolver } from "./resolver/Book.resolver";
+import { UserResolver } from "./resolver/User.resolver";
 
 const main = async () => {
   const app = express();
