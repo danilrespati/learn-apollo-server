@@ -9,7 +9,7 @@ export const AppDataSource = new DataSource({
   port: 5432,
   username: "postgres",
   password: "postgres",
-  database: "learn-apollo-server",
+  database: "learn-apollo-server-test",
   synchronize: true,
   logging: false,
   entities: [Book, User],
