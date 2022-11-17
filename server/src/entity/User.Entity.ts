@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
 
 @ObjectType()
 class UserDetails {
@@ -12,7 +12,7 @@ class UserDetails {
 
 @Entity()
 @ObjectType()
-export class User {
+export class User extends BaseEntity {
   @PrimaryColumn()
   @Field()
   _id: string;
@@ -30,8 +30,8 @@ export class User {
   isActive: boolean;
 
   @Column({ type: "json" })
-  @Field(() => UserDetails)
-  details: UserDetails;
+  @Field(() => [UserDetails])
+  details: UserDetails[];
 
   @Column({ type: "text" })
   @Field()
