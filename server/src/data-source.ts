@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { Book } from "./entity/Book.entity";
-import { User } from "./entity/User.Entity";
+import { Member } from "./entity/Member.entity";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -12,7 +12,7 @@ export const AppDataSource = new DataSource({
   database: "learn-apollo-server-test",
   synchronize: true,
   logging: false,
-  entities: [Book, User],
+  entities: [Book, Member],
   migrations: [],
   subscribers: [],
 });

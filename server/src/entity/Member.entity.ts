@@ -1,8 +1,8 @@
 import { Field, ObjectType } from "type-graphql";
-import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @ObjectType()
-class UserDetails {
+class MemberDetails {
   @Field()
   name: string;
 
@@ -12,12 +12,12 @@ class UserDetails {
 
 @Entity()
 @ObjectType()
-export class User extends BaseEntity {
-  @PrimaryColumn()
+export class Member extends BaseEntity {
+  @Column({ unique: true })
   @Field()
   _id: string;
 
-  @Column()
+  @PrimaryGeneratedColumn()
   @Field()
   index: number;
 
@@ -30,8 +30,8 @@ export class User extends BaseEntity {
   isActive: boolean;
 
   @Column({ type: "json" })
-  @Field(() => [UserDetails])
-  details: UserDetails[];
+  @Field(() => [MemberDetails])
+  details: MemberDetails[];
 
   @Column({ type: "text" })
   @Field()

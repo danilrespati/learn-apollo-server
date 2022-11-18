@@ -5,19 +5,19 @@ import express from "express";
 import { createServer } from "http";
 import { buildSchema } from "type-graphql";
 import { BookResolver } from "./resolver/Book.resolver";
-import { UserResolver } from "./resolver/User.resolver";
 import { AppDataSource } from "./data-source";
 import { Book } from "./entity/Book.entity";
 import { BooksData } from "./sampleData/Book.data";
-import { User } from "./entity/User.Entity";
-import { UsersData } from "./sampleData/User.data";
+import { Member } from "./entity/Member.entity";
+import { MembersData } from "./sampleData/Member.data";
+import { MemberResolver } from "./resolver/Member.resolver";
 
 AppDataSource.initialize()
   .then(async () => {
     const app = express();
     const httpServer = createServer(app);
     const server = new ApolloServer({
-      schema: await buildSchema({ resolvers: [BookResolver, UserResolver] }),
+      schema: await buildSchema({ resolvers: [BookResolver, MemberResolver] }),
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     });
     await server.start();
@@ -29,20 +29,20 @@ AppDataSource.initialize()
       console.log("Book database is empty! \nAdding from sample data...");
       BooksData.forEach(async (e) => {
         const book = Object.assign(new Book(), e);
-        await book.save();
+        await Book.save(book);
       });
       console.log("Book database is ready!");
     }
 
     //insert users data from sample data
-    const users = await User.find();
-    if (users.length == 0) {
-      console.log("User database is empty! \nAdding from sample data...");
-      UsersData.forEach(async (e) => {
-        const user = Object.assign(new User(), e);
-        await user.save();
+    const members = await Member.find();
+    if (members.length == 0) {
+      console.log("Member database is empty! \nAdding from sample data...");
+      MembersData.forEach(async (e) => {
+        const member = Object.assign(new Member(), e);
+        await member.save();
       });
-      console.log("User database is ready!");
+      console.log("Member database is ready!");
     }
 
     app.get("/books", async (_req, res) => {
@@ -53,10 +53,10 @@ AppDataSource.initialize()
       res.end();
     });
 
-    app.get("/users", async (_req, res) => {
-      const users = await User.find();
-      users.forEach((user) => {
-        res.write(JSON.stringify(user, null, 3));
+    app.get("/members", async (_req, res) => {
+      const members = await Member.find();
+      members.forEach((member) => {
+        res.write(JSON.stringify(member, null, 3));
       });
       res.end();
     });
