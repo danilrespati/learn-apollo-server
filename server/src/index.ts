@@ -63,29 +63,36 @@ AppDataSource.initialize()
     });
 
     app.post("/refresh_token", async (req, res) => {
-      const refreshToken = req.cookies.kfb;
-      if (!refreshToken) {
-        res.send({ ok: false, accessToken: "" });
-        return;
-      }
-
-      let payload: any = null;
       try {
-        payload = verify(refreshToken, process.env.JWT_REFRESH_TOKEN_SECRET!);
-        if (!payload) throw new Error();
-      } catch {
-        res.send({ ok: false, accessToken: "" });
+        const refreshToken = req.cookies.kfb;
+        if (!refreshToken) {
+          throw new Error("Token not found");
+        }
+
+        const payload = verify(
+          refreshToken,
+          process.env.JWT_REFRESH_TOKEN_SECRET!
+        );
+        if (
+          typeof payload == "string" ||
+          !payload.userId ||
+          !payload.tokenVersion
+        ) {
+          throw new Error("Bad token");
+        }
+
+        const user = await User.findOneBy({ _id: payload.userId });
+        if (!user || user.tokenVersion !== payload.tokenVersion) {
+          throw new Error("Not authenticated");
+        }
+
+        setRefreshToken(res, createRefreshToken(user));
+        res.send({ ok: true, accessToken: createAccessToken(user) });
+      } catch (error) {
+        console.error(error);
+        res.send({ ok: false, accessToken: `` });
         return;
       }
-
-      const user = await User.findOneBy({ _id: payload.userId });
-      if (!user) {
-        res.send({ ok: false, accessToken: "" });
-        return;
-      }
-
-      setRefreshToken(res, createRefreshToken(user));
-      res.send({ ok: true, accessToken: createAccessToken(user) });
     });
 
     await new Promise<void>((resolve) =>

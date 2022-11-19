@@ -15,4 +15,8 @@ export class User extends BaseEntity {
   @Column()
   @Field() //remove on prod
   password: string;
+
+  @Column({ default: 1 })
+  @Field()
+  tokenVersion: number;
 }

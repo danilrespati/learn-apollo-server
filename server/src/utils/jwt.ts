@@ -9,9 +9,13 @@ export const createAccessToken = (user: User) => {
 };
 
 export const createRefreshToken = (user: User) => {
-  return sign({ userId: user._id }, process.env.JWT_REFRESH_TOKEN_SECRET!, {
-    expiresIn: process.env.JWT_REFRESH_TOKEN_EXP,
-  });
+  return sign(
+    { userId: user._id, tokenVersion: user.tokenVersion },
+    process.env.JWT_REFRESH_TOKEN_SECRET!,
+    {
+      expiresIn: process.env.JWT_REFRESH_TOKEN_EXP,
+    }
+  );
 };
 
 export const setRefreshToken = (res: Response, token: string) => {

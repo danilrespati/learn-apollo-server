@@ -86,4 +86,16 @@ export class UserResolver {
     }
     return login;
   }
+
+  @Mutation(() => Boolean)
+  async revokeRefreshToken(@Arg("userId") id: number) {
+    const user = await User.findOneBy({ _id: id });
+    if (!user) {
+      return false;
+    }
+
+    user.tokenVersion++;
+    await User.save(user);
+    return true;
+  }
 }
