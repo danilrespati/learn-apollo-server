@@ -8,8 +8,7 @@ import cors from "cors";
 import { AppDataSource } from "./data-source";
 import { Book } from "./entity/Book.entity";
 import { Member } from "./entity/Member.entity";
-import { BooksData } from "./sampleData/Book.data";
-import { MembersData } from "./sampleData/Member.data";
+import { initData } from "./utils/initData";
 import { BookResolver } from "./resolver/Book.resolver";
 import { MemberResolver } from "./resolver/Member.resolver";
 import { UserResolver } from "./resolver/User.resolver";
@@ -19,6 +18,7 @@ dotenv.config();
 
 AppDataSource.initialize()
   .then(async () => {
+    await initData();
     const app = express();
 
     app.use(
@@ -35,28 +35,6 @@ AppDataSource.initialize()
     });
     await server.start();
     server.applyMiddleware({ app, cors: false });
-
-    //insert books data from sample data
-    const books = await Book.find();
-    if (books.length == 0) {
-      console.log("Book database is empty! \nAdding from sample data...");
-      BooksData.forEach(async (e) => {
-        const book = Object.assign(new Book(), e);
-        await Book.save(book);
-      });
-      console.log("Book database is ready!");
-    }
-
-    //insert users data from sample data
-    const members = await Member.find();
-    if (members.length == 0) {
-      console.log("Member database is empty! \nAdding from sample data...");
-      MembersData.forEach(async (e) => {
-        const member = Object.assign(new Member(), e);
-        await member.save();
-      });
-      console.log("Member database is ready!");
-    }
 
     app.get("/books", async (_req, res) => {
       const books = await Book.find();
