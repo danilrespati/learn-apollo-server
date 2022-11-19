@@ -15,5 +15,10 @@ export const createRefreshToken = (user: User) => {
 };
 
 export const setRefreshToken = (res: Response, token: string) => {
-  res.cookie("kfb", token, { httpOnly: true, sameSite: "none", secure: true });
+  res.cookie("kfb", token, {
+    path: "/refresh_token",
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
 };

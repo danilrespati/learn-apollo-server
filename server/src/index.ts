@@ -12,7 +12,15 @@ import { initData } from "./utils/initData";
 import { BookResolver } from "./resolver/Book.resolver";
 import { MemberResolver } from "./resolver/Member.resolver";
 import { UserResolver } from "./resolver/User.resolver";
+import cookieParser from "cookie-parser";
+import { verify } from "jsonwebtoken";
 import * as dotenv from "dotenv";
+import { User } from "./entity/User.entity";
+import {
+  createAccessToken,
+  createRefreshToken,
+  setRefreshToken,
+} from "./utils/jwt";
 
 dotenv.config();
 
@@ -24,6 +32,8 @@ AppDataSource.initialize()
     app.use(
       cors({ origin: "https://studio.apollographql.com", credentials: true })
     );
+
+    app.use(cookieParser());
 
     const httpServer = createServer(app);
     const server = new ApolloServer({
@@ -50,6 +60,32 @@ AppDataSource.initialize()
         res.write(JSON.stringify(member, null, 3));
       });
       res.end();
+    });
+
+    app.post("/refresh_token", async (req, res) => {
+      const refreshToken = req.cookies.kfb;
+      if (!refreshToken) {
+        res.send({ ok: false, accessToken: "" });
+        return;
+      }
+
+      let payload: any = null;
+      try {
+        payload = verify(refreshToken, process.env.JWT_REFRESH_TOKEN_SECRET!);
+        if (!payload) throw new Error();
+      } catch {
+        res.send({ ok: false, accessToken: "" });
+        return;
+      }
+
+      const user = await User.findOneBy({ _id: payload.userId });
+      if (!user) {
+        res.send({ ok: false, accessToken: "" });
+        return;
+      }
+
+      setRefreshToken(res, createRefreshToken(user));
+      res.send({ ok: true, accessToken: createAccessToken(user) });
     });
 
     await new Promise<void>((resolve) =>
