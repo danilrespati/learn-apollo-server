@@ -4,24 +4,37 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
 import express from "express";
 import { createServer } from "http";
 import { buildSchema } from "type-graphql";
-import { BookResolver } from "./resolver/Book.resolver";
+import cors from "cors";
 import { AppDataSource } from "./data-source";
 import { Book } from "./entity/Book.entity";
-import { BooksData } from "./sampleData/Book.data";
 import { Member } from "./entity/Member.entity";
+import { BooksData } from "./sampleData/Book.data";
 import { MembersData } from "./sampleData/Member.data";
+import { BookResolver } from "./resolver/Book.resolver";
 import { MemberResolver } from "./resolver/Member.resolver";
+import { UserResolver } from "./resolver/User.resolver";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 AppDataSource.initialize()
   .then(async () => {
     const app = express();
+
+    app.use(
+      cors({ origin: "https://studio.apollographql.com", credentials: true })
+    );
+
     const httpServer = createServer(app);
     const server = new ApolloServer({
-      schema: await buildSchema({ resolvers: [BookResolver, MemberResolver] }),
+      schema: await buildSchema({
+        resolvers: [BookResolver, MemberResolver, UserResolver],
+      }),
+      context: ({ req, res }) => ({ req, res }),
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     });
     await server.start();
-    server.applyMiddleware({ app });
+    server.applyMiddleware({ app, cors: false });
 
     //insert books data from sample data
     const books = await Book.find();
@@ -62,10 +75,12 @@ AppDataSource.initialize()
     });
 
     await new Promise<void>((resolve) =>
-      httpServer.listen({ port: 4000 }, resolve)
+      httpServer.listen({ port: process.env.PORT }, resolve)
     );
 
-    console.log(`🚀 Server ready at: http://localhost:4000/graphql`);
+    console.log(
+      `🚀 Server ready at: http://localhost:${process.env.PORT}/graphql`
+    );
   })
   .catch((error) => {
     console.log(error);
