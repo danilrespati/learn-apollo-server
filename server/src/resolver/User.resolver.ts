@@ -6,6 +6,7 @@ import {
   ObjectType,
   Query,
   Resolver,
+  UseMiddleware,
 } from "type-graphql";
 import { User } from "../entity/User.entity";
 import { hash, verify } from "argon2";
@@ -15,6 +16,7 @@ import {
   setRefreshToken,
 } from "../utils/jwt";
 import { MyContext } from "../utils/MyContext";
+import { isAuth } from "../middleware/isAuth";
 
 @ObjectType()
 class LoginRespose {
@@ -38,6 +40,13 @@ export class UserResolver {
   @Query(() => User)
   async user(@Arg("id") _id: number) {
     return await User.findOneBy({ _id });
+  }
+
+  @Query(() => String)
+  @UseMiddleware(isAuth)
+  async authCheck(@Ctx() { payload }: MyContext) {
+    const user = await User.findOneBy({ _id: payload!.userId });
+    return `Hello ${user?.username}`;
   }
 
   @Mutation(() => Boolean)
